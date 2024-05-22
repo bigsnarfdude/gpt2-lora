@@ -1,5 +1,7 @@
 # gpt2-lora
 
+https://github.com/rasbt/LLMs-from-scratch/tree/main/appendix-E/01_main-chapter-code
+
 ```
 
 python gpt2_lora.py
