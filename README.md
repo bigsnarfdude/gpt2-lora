@@ -1,4 +1,4 @@
-# gpt2-lora
+# gpt2-lora finetuning with half the memory requirements
 
 https://github.com/rasbt/LLMs-from-scratch/tree/main/appendix-E/01_main-chapter-code
 
