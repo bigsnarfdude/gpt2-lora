@@ -1,24 +1,27 @@
 from importlib.metadata import version
-
-pkgs = ["matplotlib",
-        "numpy",
-        "tiktoken",
-        "torch",
-        "tensorflow", # For OpenAI's pretrained weights
-        "pandas"      # Dataset loading
-       ]
-for p in pkgs:
-    print(f"{p} version: {version(p)}")
-
-
 from pathlib import Path
 import pandas as pd
-from previous_chapters import (
-    download_and_unzip_spam_data,
-    create_balanced_dataset,
-    random_split
-)
+from previous_chapters import download_and_unzip_spam_data
+from previous_chapters import create_balanced_dataset
+from previous_chapters import random_split
+import torch
+from torch.utils.data import Dataset
+import tiktoken
+from previous_chapters import SpamDataset
+from torch.utils.data import DataLoader
+from gpt_download import download_and_load_gpt2
 
+from previous_chapters import GPTModel, load_weights_into_gpt
+from previous_chapters import generate_text_simple
+from previous_chapters import text_to_token_ids
+
+from previous_chapters import calc_accuracy_loader
+
+import time
+from previous_chapters import train_classifier_simple
+from previous_chapters import plot_values
+
+from previous_chapters import calc_accuracy_loader
 
 url = "https://archive.ics.uci.edu/static/public/228/sms+spam+collection.zip"
 zip_path = "sms_spam_collection.zip"
@@ -36,18 +39,11 @@ train_df.to_csv("train.csv", index=None)
 validation_df.to_csv("validation.csv", index=None)
 test_df.to_csv("test.csv", index=None)
 
-import torch
-from torch.utils.data import Dataset
-import tiktoken
-from previous_chapters import SpamDataset
-
-
 tokenizer = tiktoken.get_encoding("gpt2")
 train_dataset = SpamDataset("train.csv", max_length=None, tokenizer=tokenizer)
 val_dataset = SpamDataset("validation.csv", max_length=train_dataset.max_length, tokenizer=tokenizer)
 test_dataset = SpamDataset("test.csv", max_length=train_dataset.max_length, tokenizer=tokenizer)
 
-from torch.utils.data import DataLoader
 
 num_workers = 0
 batch_size = 8
@@ -88,9 +84,6 @@ print(f"{len(train_loader)} training batches")
 print(f"{len(val_loader)} validation batches")
 print(f"{len(test_loader)} test batches")
 
-from gpt_download import download_and_load_gpt2
-from previous_chapters import GPTModel, load_weights_into_gpt
-
 
 CHOOSE_MODEL = "gpt2-small (124M)"
 INPUT_PROMPT = "Every effort moves"
@@ -119,13 +112,6 @@ load_weights_into_gpt(model, params)
 model.eval();
 
 
-from previous_chapters import (
-    generate_text_simple,
-    text_to_token_ids,
-    token_ids_to_text
-)
-
-
 text_1 = "Every effort moves you"
 
 token_ids = generate_text_simple(
@@ -147,7 +133,6 @@ model.out_head = torch.nn.Linear(in_features=768, out_features=num_classes)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device);  # no assignment model = model.to(device) necessary for nn.Module classes
 
-from previous_chapters import calc_accuracy_loader
 
 
 torch.manual_seed(123)
@@ -226,9 +211,6 @@ print(f"Validation accuracy: {val_accuracy*100:.2f}%")
 print(f"Test accuracy: {test_accuracy*100:.2f}%")
 
 
-import time
-from previous_chapters import train_classifier_simple
-
 
 start_time = time.time()
 
@@ -248,7 +230,6 @@ execution_time_minutes = (end_time - start_time) / 60
 print(f"Training completed in {execution_time_minutes:.2f} minutes.")
 
 
-from previous_chapters import plot_values
 
 epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
 examples_seen_tensor = torch.linspace(0, examples_seen, len(train_losses))
@@ -256,7 +237,6 @@ examples_seen_tensor = torch.linspace(0, examples_seen, len(train_losses))
 plot_values(epochs_tensor, examples_seen_tensor, train_losses, val_losses, label="loss")
 
 
-from previous_chapters import calc_accuracy_loader
 
 train_accuracy = calc_accuracy_loader(train_loader, model, device)
 val_accuracy = calc_accuracy_loader(val_loader, model, device)
@@ -265,5 +245,4 @@ test_accuracy = calc_accuracy_loader(test_loader, model, device)
 print(f"Training accuracy: {train_accuracy*100:.2f}%")
 print(f"Validation accuracy: {val_accuracy*100:.2f}%")
 print(f"Test accuracy: {test_accuracy*100:.2f}%")
-
 
